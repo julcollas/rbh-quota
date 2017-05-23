@@ -104,10 +104,12 @@ def insert():
     else:
         user = db.fetchone()
         while (user):
-            tmp = subprocess.Popen(["lfs quota", "-q", "-u ", "root", "/mnt/lustre"], shell=True)
-            print(tmp)
-            values = re.split("/[\s]+/", str.replace('\n', '', str.strip(tmp)))
-            db.execute("INSERT INTO QUOTA VALUES(" + values[0] + ", " + values[1] + ", " + values[2] + ", " + values[3] + ", " + values[4] + ", " + values[5] + ")")
+            p = subprocess.Popen(["/usr/bin/lfs", "quota", "-u", user[0], fs_path], stdout=subprocess.PIPE)
+	    out = p.communicate()[0].replace('\n', ' ')
+	    values = re.findall('\s[\d]+\s(?!\(uid)', out)
+            #values = re.split("[\s]+", out)
+	    print(values)
+            #db.execute("INSERT INTO QUOTA VALUES(" + values[0] + ", " + values[1] + ", " + values[2] + ", " + values[3] + ", " + values[4] + ", " + values[5] + ")")
             user = db.fetchone()
 
     try:
