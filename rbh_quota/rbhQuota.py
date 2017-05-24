@@ -102,15 +102,14 @@ def insert():
         print 'Error: Query failed to execute'
         exit(1)
     else:
-        user = db.fetchone()
-        while (user):
-            p = subprocess.Popen(["/usr/bin/lfs", "quota", "-u", user[0], fs_path], stdout=subprocess.PIPE)
+        user = db.fetchall()
+	i = 0
+        while (i < len(user)):
+            p = subprocess.Popen(["/usr/bin/lfs", "quota", "-u", user[i][0], fs_path], stdout=subprocess.PIPE)
 	    out = p.communicate()[0].replace('\n', ' ')
-	    values = re.findall('\s[\d]+\s(?!\(uid)', out)
-            #values = re.split("[\s]+", out)
-	    print(values)
-            #db.execute("INSERT INTO QUOTA VALUES(" + values[0] + ", " + values[1] + ", " + values[2] + ", " + values[3] + ", " + values[4] + ", " + values[5] + ")")
-            user = db.fetchone()
+	    values = re.findall('\s([\d]+|\-)\s(?![(]uid)', out)
+            db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] + "', " + values[1] + ", " + values[2] + ", " + values[5] + ", " + values[6] + ")")
+	    i += 1
 
     try:
         db.close()
