@@ -86,12 +86,12 @@ def insert():
 
     try:
         db.execute("""CREATE TABLE `QUOTA`
-                      (`uid` varchar(127) NOT NULL,
+                      (`owner` varchar(127) NOT NULL,
                       `softBlocks` bigint(20) unsigned DEFAULT '0',
                       `hardBlocks` bigint(20) unsigned DEFAULT '0',
                       `softInodes` bigint(20) unsigned DEFAULT '0',
                       `hardInodes` bigint(20) unsigned DEFAULT '0',
-                      PRIMARY KEY (`uid`) )""")
+                      PRIMARY KEY (`owner`) )""")
     except:
         print 'Error: Query failed to execute'
         exit(1)
@@ -107,7 +107,9 @@ def insert():
         while (i < len(user)):
             p = subprocess.Popen(["/usr/bin/lfs", "quota", "-u", user[i][0], fs_path], stdout=subprocess.PIPE)
 	    out = p.communicate()[0].replace('\n', ' ')
-	    values = re.findall('\s([\d]+|\-)\s(?![(]uid)', out)
+	    print(out)
+	    values = re.findall('([\d]+|\-)\s(?![(]uid)', out)
+	    print(values)
             db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] + "', " + values[1] + ", " + values[2] + ", " + values[5] + ", " + values[6] + ")")
 	    i += 1
 
