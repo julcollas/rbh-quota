@@ -103,15 +103,15 @@ def insert():
         exit(1)
     else:
         user = db.fetchall()
-	i = 0
+        i = 0
         while (i < len(user)):
             p = subprocess.Popen(["lfs", "quota", "-u", user[i][0], fs_path], stdout=subprocess.PIPE)
-	    out = p.communicate()[0].replace('\n', ' ')
-	    values = re.findall('([\d]+|\-)\s(?![(]uid)', out)
-            db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] + 
-				"', " + values[1] + ", " + values[2] + 	
-				", " + values[5] + ", " + values[6] + ")")
-	    i += 1
+            out = p.communicate()[0].replace('\n', ' ')
+            values = re.findall('([\d]+|\-)\s(?![(]uid)', out)
+            db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] +
+                       "', " + values[1] + ", " + values[2] +
+                       ", " + values[5] + ", " + values[6] + ")")
+        i += 1
 
     try:
         db.close()
