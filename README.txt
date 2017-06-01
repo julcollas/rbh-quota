@@ -7,10 +7,10 @@ I - Introduction
 ================
 
 Using the robinhood MySQL database and a Lustre filesystem,
-rbh-quota provides a new table to the database 'QUOTA' and stores
+rbh-quota provides a new table 'QUOTA' to the database and stores
 the quotas foreach users in it.
 This table can be used to visualize the quotas through
-robinhood's web interface from this git repository : https://github.com/LiquidSame/robinhood
+robinhood's web interface from this fork : https://github.com/LiquidSame/robinhood
 
 II - Compiling
 ==============
@@ -74,13 +74,14 @@ vim ~/.rbh-quota.ini
 # or execute it with arguments (see 'rbh-quota --help')
 rbh-quota -u robinhood -h localhost
 
-'QUOTA' table with the appropriate timestamp will be created on the chose database
+A table 'QUOTA' will be created on the chosen database
 or an error will be issued.
 
 V - Configuration file
 ======================
 
 template for '~/.rbh-quota.ini' :
+
 [rbh-quota_api]
 db_host = "..."
 db_user = "robinhood"
