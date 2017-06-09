@@ -31,6 +31,16 @@ def insert():
     parser.add_argument(
 	'-m', '--domain', required=False, action='store', help='User mail domain'
     )
+    parser.add_argument(
+        '-S', '--server', required=False, action='store', help='SMTP server name'
+    )
+    parser.add_argument(
+        '-s', '--sender', required=False, action='store', help='Name used to send mail'
+    )
+    parser.add_argument(
+        '-t', '--template', required=False, action='store', help='Path to a mail template file'
+    )
+
 
     args = parser.parse_args()
 
@@ -78,16 +88,37 @@ def insert():
         else:
 	    alerts_on = False;
 
-    if args.domain:
-        mail_domain = args.domain
-    else:
-        if config.domain:
-            mail_domain = config.domain
+    if alerts_on:
+        if args.domain:
+            mail_domain = args.domain
         else:
-	    if alerts_on:
+            if config.domain:
+                mail_domain = config.domain
+            else:
             	print 'ERROR: alerts activated but mail domain missing from config file !'
             	exit(1)
 
+        if args.server:
+            smtp = args.server
+        else:
+            if config.server:
+                smtp = config.server
+	    else:
+		print 'ERROR: alerts activated but SMTP server missing from config file !'
+                exit(1)
+
+        if args.sender:
+            sender = args.sender
+        else:
+	    if config.sender:
+                sender = config.sender
+
+	if args.template:
+	    mail_tmplt = args.template
+	else:
+	     if config.mail_template:
+		mail_tmplt = config.mail_template
+                
     try:
         connection = MySQLdb.connect(DB_HOST, DB_USER, DB_PWD, DB)
     except:
@@ -137,13 +168,13 @@ def insert():
             db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] + 
 				"', " + values[1] + ", " + values[2] + 	
 				", " + values[5] + ", " + values[6] + ")")
-	    if (user[i][1] >= 0):
+	    if (alerts_on and user[i][1] >= 0):
 		msg = MIMEText("Warning :\nYou, " + user[i][0] + ", have reached your softBlock quota of " + values[1] + " on " + fs_path)
 		msg['Subject'] = '[Warning] softBlock quota reached'
 		msg['From'] = 'rbh-quota@' + mail_domain
-		msg['To'] = user[i][0] + '@' + mail_domain
+		msg['To'] = 'sami.boucenna@' + mail_domain
 		server = smtplib.SMTP('mailhost01.fr.cfm.fr')
-		server.sendmail('rbh-quota@' + mail_domain, user[i][0] '@' + mail_domain, msg.as_string())
+		server.sendmail('rbh-quota@' + mail_domain, 'sami.boucenna@' + mail_domain, msg.as_string())
 		server.quit()
 
 	    i += 1
