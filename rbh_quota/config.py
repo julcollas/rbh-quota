@@ -24,3 +24,13 @@ try:
     db = Config.get('rbh-quota_api', 'db')
 except:
     db = ''
+
+try:
+    alerts = Config.get('rbh-quota_api', 'alerts')
+except:
+    alerts = False
+
+try:
+    domain = Config.get('rbh-quota_api', 'domain')
+except:
+    domain = ''

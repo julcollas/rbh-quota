@@ -4,6 +4,8 @@ import argparse
 import re
 from sys import exit
 import subprocess
+import smtplib
+from email.mime.text import MIMEText
 from rbh_quota import config
 import MySQLdb
 
@@ -22,6 +24,12 @@ def insert():
     )
     parser.add_argument(
         '-d', '--database', required=False, action='store', help='Database name'
+    )
+    parser.add_argument(
+	'-a', '--alerts', required=False, action='store', help='Trigger mail on soft quota'
+    )    
+    parser.add_argument(
+	'-m', '--domain', required=False, action='store', help='User mail domain'
     )
 
     args = parser.parse_args()
@@ -62,6 +70,24 @@ def insert():
             print 'ERROR: missing database from config file !'
             exit(1)
 
+    if args.alerts:
+        alerts_on = args.alerts
+    else:
+        if config.alerts:
+            alerts_on = config.alerts
+        else:
+	    alerts_on = False;
+
+    if args.domain:
+        mail_domain = args.domain
+    else:
+        if config.domain:
+            mail_domain = config.domain
+        else:
+	    if alerts_on:
+            	print 'ERROR: alerts activated but mail domain missing from config file !'
+            	exit(1)
+
     try:
         connection = MySQLdb.connect(DB_HOST, DB_USER, DB_PWD, DB)
     except:
@@ -97,7 +123,7 @@ def insert():
         exit(1)
 
     try:
-        db.execute("""SELECT DISTINCT(uid) FROM ACCT_STAT""")
+        db.execute("""SELECT DISTINCT(uid), SUM(size), SUM(count) FROM ACCT_STAT GROUP BY uid""")
     except:
         print 'Error: Query failed to execute'
         exit(1)
@@ -111,6 +137,20 @@ def insert():
             db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] + 
 				"', " + values[1] + ", " + values[2] + 	
 				", " + values[5] + ", " + values[6] + ")")
+	    if (user[i][1] >= 0):
+		p = subprocess.Popen(["touch", "rbh-quota-tmpMailFile"], stdout=subprocess.PIPE)
+		fp = open("rbh-quota-tmpMailFile", 'w+r')
+		p = subprocess.Popen(["echo", "Warning :\nYou, " + user[i][0] + ", have reached your softBlock quota of " + values[1] + " on " + fs_path], stdout=fp)
+		msg = MIMEText(fp.read())
+		fp.close()
+		p = subprocess.Popen(["rm", "-f", "rbh-quota-tmpMailFile"], stdout=subprocess.PIPE)
+		msg['Subject'] = '[Warning] softBlock quota reached'
+		msg['From'] = 'rbh-quotaAlert'
+		msg['To'] = user[i][0] + '@' + mail_domain
+	        s = smtplib.SMTP('localhost')
+#		s.sendmail('rbh-quotaAlert', user[i][0] + '@' + mail_domain, msg.as_string())
+		s.quit()
+
 	    i += 1
 
     try:
