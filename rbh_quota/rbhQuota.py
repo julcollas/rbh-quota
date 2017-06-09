@@ -4,8 +4,8 @@ import argparse
 import re
 from sys import exit
 import subprocess
-import smtplib
 from email.mime.text import MIMEText
+import smtplib
 from rbh_quota import config
 import MySQLdb
 
@@ -138,18 +138,13 @@ def insert():
 				"', " + values[1] + ", " + values[2] + 	
 				", " + values[5] + ", " + values[6] + ")")
 	    if (user[i][1] >= 0):
-		p = subprocess.Popen(["touch", "rbh-quota-tmpMailFile"], stdout=subprocess.PIPE)
-		fp = open("rbh-quota-tmpMailFile", 'w+r')
-		p = subprocess.Popen(["echo", "Warning :\nYou, " + user[i][0] + ", have reached your softBlock quota of " + values[1] + " on " + fs_path], stdout=fp)
-		msg = MIMEText(fp.read())
-		fp.close()
-		p = subprocess.Popen(["rm", "-f", "rbh-quota-tmpMailFile"], stdout=subprocess.PIPE)
+		msg = MIMEText("Warning :\nYou, " + user[i][0] + ", have reached your softBlock quota of " + values[1] + " on " + fs_path)
 		msg['Subject'] = '[Warning] softBlock quota reached'
-		msg['From'] = 'rbh-quotaAlert'
+		msg['From'] = 'rbh-quota@' + mail_domain
 		msg['To'] = user[i][0] + '@' + mail_domain
-	#        s = smtplib.SMTP('localhost')
-#		s.sendmail('rbh-quotaAlert', user[i][0] + '@' + mail_domain, msg.as_string())
-	#	s.quit()
+		server = smtplib.SMTP('mailhost01.fr.cfm.fr')
+		server.sendmail('rbh-quota@' + mail_domain, user[i][0] '@' + mail_domain, msg.as_string())
+		server.quit()
 
 	    i += 1
 
