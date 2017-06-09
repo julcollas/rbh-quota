@@ -177,7 +177,7 @@ def insert():
 		print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
         	exit(1)
 		
-	    if (alerts_on and user[i][1] >= values[1]):
+	    if (alerts_on and values[1] > 0 and user[i][1] >= values[1]):
 		if (os.path.isfile(mail_tmplt)):
 		    msg = MIMEText(open(mail_tmplt, "rb").read())
 		else:
@@ -189,7 +189,7 @@ def insert():
 		server.sendmail(sender + '@' + mail_domain, user[i][0] + '@' + mail_domain, msg.as_string())
 		server.quit()
 
-            if (alerts_on and user[i][1] >= values[5]):
+            if (alerts_on and values[5] > 0 and user[i][1] >= values[5]):
                 if (os.path.isfile(mail_tmplt)):
                     msg = MIMEText(open(mail_tmplt, "rb").read())
                 else:
