@@ -64,7 +64,7 @@ def insert():
 
     try:
         connection = MySQLdb.connect(DB_HOST, DB_USER, DB_PWD, DB)
-    except:
+    except MySQLdb.Error, e:
         print 'Error: Unable to connect to database\n', e[0], e[1]
         exit(1)
     else:
@@ -72,16 +72,16 @@ def insert():
 
     try:
         db.execute("""SELECT value FROM VARS WHERE varname='FS_Path'""")
-    except:
-        print 'Error: Query failed to execute'
+    except MySQLdb.Error, e:
+        print 'Error: Query failed to execute [Retrieving FS_PATH]\n', e[0], e[1]
         exit(1)
     else:
         fs_path = (db.fetchone())[0]
 
     try:
         db.execute("""DROP TABLE IF EXISTS QUOTA""")
-    except:
-        print 'Error: Query failed to execute'
+    except MySQLdb.Error, e:
+        print 'Error: Query failed to execute [Drop QUOTA table]\n', e[0], e[1]
         exit(1)
 
     try:
@@ -92,14 +92,14 @@ def insert():
                       `softInodes` bigint(20) unsigned DEFAULT '0',
                       `hardInodes` bigint(20) unsigned DEFAULT '0',
                       PRIMARY KEY (`owner`) )""")
-    except:
-        print 'Error: Query failed to execute'
+    except MySQLdb.Error, e:
+        print 'Error: Query failed to execute [Create QUOTA table]', e[0], e[1]
         exit(1)
 
     try:
         db.execute("""SELECT DISTINCT(uid) FROM ACCT_STAT""")
-    except:
-        print 'Error: Query failed to execute'
+    except MySQLdb.Error, e:
+        print 'Error: Query failed to execute [Retrieve uid]\n', e[0], e[1]
         exit(1)
     else:
         user = db.fetchall()
@@ -108,10 +108,15 @@ def insert():
             p = subprocess.Popen(["lfs", "quota", "-u", user[i][0], fs_path], stdout=subprocess.PIPE)
             out = p.communicate()[0].replace('\n', ' ')
             values = re.findall('([\d]+|\-)\s(?![(]uid)', out)
-            db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] +
-                       "', " + values[1] + ", " + values[2] +
-                       ", " + values[5] + ", " + values[6] + ")")
-        i += 1
+	    try:
+                db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] +
+                           "', " + values[1] + ", " + values[2] +
+                           ", " + values[5] + ", " + values[6] + ")")
+	    except MySQLdb.Error, e:
+		print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
+        	exit(1)
+
+            i += 1
 
     try:
         db.close()
