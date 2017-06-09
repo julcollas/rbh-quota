@@ -171,17 +171,29 @@ def insert():
             db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] + 
 				"', " + values[1] + ", " + values[2] + 	
 				", " + values[5] + ", " + values[6] + ")")
-	    if (alerts_on and user[i][1] >= 0):
+	    if (alerts_on and user[i][1] >= values[1]):
 		if (os.path.isfile(mail_tmplt)):
 		    msg = MIMEText(open(mail_tmplt, "rb").read())
 		else:
 		    msg = MIMEText("Warning :\nYou, " + user[i][0] + ", have reached your softBlock quota of " + values[1] + " on " + fs_path)
 		    msg['Subject'] = '[Warning] softBlock quota reached'
 		    msg['From'] = sender + '@' + mail_domain
-		    msg['To'] = 'sami.boucenna@' + mail_domain
+		    msg['To'] = user[i][0] + '@' + mail_domain
 		server = smtplib.SMTP(smtp)
-		server.sendmail(sender + '@' + mail_domain, 'sami.boucenna@' + mail_domain, msg.as_string())
+		server.sendmail(sender + '@' + mail_domain, user[i][0] + '@' + mail_domain, msg.as_string())
 		server.quit()
+
+            if (alerts_on and user[i][1] >= values[5]):
+                if (os.path.isfile(mail_tmplt)):
+                    msg = MIMEText(open(mail_tmplt, "rb").read())
+                else:
+                    msg = MIMEText("Warning :\nYou, " + user[i][0] + ", have reached your softInode quota of " + values[5] + " on " + fs_path)
+                    msg['Subject'] = '[Warning] softBlock quota reached'
+                    msg['From'] = sender + '@' + mail_domain
+                    msg['To'] = user[i][0] + '@' + mail_domain
+                server = smtplib.SMTP(smtp)
+                server.sendmail(sender + '@' + mail_domain, user[i][0] + '@' + mail_domain, msg.as_string())
+                server.quit()
 
 	    i += 1
 
