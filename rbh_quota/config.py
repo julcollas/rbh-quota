@@ -43,7 +43,7 @@ except:
 try:
     sender = Config.get('rbh-quota_api', 'sender')
 except:
-    sender = ''
+    sender = 'rbh-quota'
 
 try:
     mail_template = Config.get('rbh-quota_api', 'mail_template')

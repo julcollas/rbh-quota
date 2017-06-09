@@ -2,6 +2,7 @@
 
 import argparse
 import re
+import os.path
 from sys import exit
 import subprocess
 from email.mime.text import MIMEText
@@ -118,6 +119,8 @@ def insert():
 	else:
 	     if config.mail_template:
 		mail_tmplt = config.mail_template
+	     else:
+		mail_tmplt = ''
                 
     try:
         connection = MySQLdb.connect(DB_HOST, DB_USER, DB_PWD, DB)
@@ -169,12 +172,15 @@ def insert():
 				"', " + values[1] + ", " + values[2] + 	
 				", " + values[5] + ", " + values[6] + ")")
 	    if (alerts_on and user[i][1] >= 0):
-		msg = MIMEText("Warning :\nYou, " + user[i][0] + ", have reached your softBlock quota of " + values[1] + " on " + fs_path)
-		msg['Subject'] = '[Warning] softBlock quota reached'
-		msg['From'] = 'rbh-quota@' + mail_domain
-		msg['To'] = 'sami.boucenna@' + mail_domain
-		server = smtplib.SMTP('mailhost01.fr.cfm.fr')
-		server.sendmail('rbh-quota@' + mail_domain, 'sami.boucenna@' + mail_domain, msg.as_string())
+		if (os.path.isfile(mail_tmplt)):
+		    msg = MIMEText(open(mail_tmplt, "rb").read())
+		else:
+		    msg = MIMEText("Warning :\nYou, " + user[i][0] + ", have reached your softBlock quota of " + values[1] + " on " + fs_path)
+		    msg['Subject'] = '[Warning] softBlock quota reached'
+		    msg['From'] = sender + '@' + mail_domain
+		    msg['To'] = 'sami.boucenna@' + mail_domain
+		server = smtplib.SMTP(smtp)
+		server.sendmail(sender + '@' + mail_domain, 'sami.boucenna@' + mail_domain, msg.as_string())
 		server.quit()
 
 	    i += 1
