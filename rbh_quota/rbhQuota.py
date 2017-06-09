@@ -65,7 +65,7 @@ def insert():
     try:
         connection = MySQLdb.connect(DB_HOST, DB_USER, DB_PWD, DB)
     except:
-        print 'Error: Unable to connect'
+        print 'Error: Unable to connect to database\n', e[0], e[1]
         exit(1)
     else:
         db = connection.cursor()
