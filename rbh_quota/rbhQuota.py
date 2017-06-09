@@ -147,9 +147,9 @@ def insert():
 		msg['Subject'] = '[Warning] softBlock quota reached'
 		msg['From'] = 'rbh-quotaAlert'
 		msg['To'] = user[i][0] + '@' + mail_domain
-	        s = smtplib.SMTP('localhost')
+	#        s = smtplib.SMTP('localhost')
 #		s.sendmail('rbh-quotaAlert', user[i][0] + '@' + mail_domain, msg.as_string())
-		s.quit()
+	#	s.quit()
 
 	    i += 1
 
