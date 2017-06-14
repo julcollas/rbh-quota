@@ -46,6 +46,6 @@ except:
     sender = 'rbh-quota'
 
 try:
-    mail_template = Config.get('rbh-quota_api', 'mail_template')
+    webHost = Config.get('rbh-quota_api', 'webHost')
 except:
-    mail_template = ''
+    webHost = socket.gethostname()

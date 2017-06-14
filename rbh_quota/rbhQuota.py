@@ -2,7 +2,6 @@
 
 import argparse
 import re
-import os.path
 from sys import exit
 import subprocess
 from email.mime.text import MIMEText
@@ -27,10 +26,10 @@ def insert():
         '-d', '--database', required=False, action='store', help='Database name'
     )
     parser.add_argument(
-	'-a', '--alerts', required=False, action='store', help='Trigger mail on soft quota'
-    )    
+        '-a', '--alerts', required=False, action='store', help='Trigger mail on soft quota'
+    )
     parser.add_argument(
-	'-m', '--domain', required=False, action='store', help='User mail domain'
+        '-m', '--domain', required=False, action='store', help='User mail domain'
     )
     parser.add_argument(
         '-S', '--server', required=False, action='store', help='SMTP server name'
@@ -39,9 +38,8 @@ def insert():
         '-s', '--sender', required=False, action='store', help='Name used to send mail'
     )
     parser.add_argument(
-        '-t', '--template', required=False, action='store', help='Path to a mail template file'
+        '-w', '--webHost', required=False, action='store', help='Host name for the robinhood web interface'
     )
-
 
     args = parser.parse_args()
 
@@ -87,7 +85,7 @@ def insert():
         if config.alerts:
             alerts_on = config.alerts
         else:
-	    alerts_on = False;
+            alerts_on = False
 
     if alerts_on:
         if args.domain:
@@ -96,32 +94,30 @@ def insert():
             if config.domain:
                 mail_domain = config.domain
             else:
-            	print 'ERROR: alerts activated but mail domain missing from config file !'
-            	exit(1)
+                print 'ERROR: alerts activated but mail domain missing from config file !'
+                exit(1)
 
         if args.server:
             smtp = args.server
         else:
             if config.server:
                 smtp = config.server
-	    else:
-		print 'ERROR: alerts activated but SMTP server missing from config file !'
+            else:
+                print 'ERROR: alerts activated but SMTP server missing from config file !'
                 exit(1)
 
         if args.sender:
             sender = args.sender
         else:
-	    if config.sender:
+            if config.sender:
                 sender = config.sender
 
-	if args.template:
-	    mail_tmplt = args.template
-	else:
-	     if config.mail_template:
-		mail_tmplt = config.mail_template
-	     else:
-		mail_tmplt = ''
-                
+        if args.webHost:
+            hostname = args.webHost
+        else:
+            if config.webHost:
+                hostname = config.webHost
+
     try:
         connection = MySQLdb.connect(DB_HOST, DB_USER, DB_PWD, DB)
     except MySQLdb.Error, e:
@@ -166,42 +162,48 @@ def insert():
         i = 0
         while (i < len(user)):
             p = subprocess.Popen(["lfs", "quota", "-u", user[i][0], fs_path], stdout=subprocess.PIPE)
-	    out = p.communicate()[0].replace('\n', ' ')
-	    values = re.findall('([\d]+|\-)\s(?![(]uid)', out)
-		
-	    try:
-            	db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] + 
-			   "', " + values[1] + ", " + values[2] + 	
-			   ", " + values[5] + ", " + values[6] + ")")
-	    except:
-		print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
-        	exit(1)
-		
-	    if (alerts_on and values[1] > 0 and user[i][1] >= values[1]):
-		if (os.path.isfile(mail_tmplt)):
-		    msg = MIMEText(open(mail_tmplt, "rb").read())
-		else:
-		    msg = MIMEText("Warning :\nYou, " + user[i][0] + ", have reached your softBlock quota of " + values[1] + " on " + fs_path)
-		    msg['Subject'] = '[Warning] softBlock quota reached'
-		    msg['From'] = sender + '@' + mail_domain
-		    msg['To'] = user[i][0] + '@' + mail_domain
-		server = smtplib.SMTP(smtp)
-		server.sendmail(sender + '@' + mail_domain, user[i][0] + '@' + mail_domain, msg.as_string())
-		server.quit()
+            out = p.communicate()[0].replace('\n', ' ')
+            values = re.findall('([\d]+|\-)\s(?![(]uid)', out)
 
-            if (alerts_on and values[5] > 0 and user[i][1] >= values[5]):
-                if (os.path.isfile(mail_tmplt)):
-                    msg = MIMEText(open(mail_tmplt, "rb").read())
-                else:
-                    msg = MIMEText("Warning :\nYou, " + user[i][0] + ", have reached your softInode quota of " + values[5] + " on " + fs_path)
-                    msg['Subject'] = '[Warning] softBlock quota reached'
-                    msg['From'] = sender + '@' + mail_domain
-                    msg['To'] = user[i][0] + '@' + mail_domain
+            try:
+                db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] +
+                           "', " + values[1] + ", " + values[2] +
+                           ", " + values[5] + ", " + values[6] + ")")
+            except:
+                print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
+                exit(1)
+
+            if (alerts_on and values[1] > 0 and user[i][1] >= values[1]):
+                msg = MIMEText("Alert on " + fs_path +
+                               ":\n\nOwner = " + user[i][0] +
+                               "\nCurrent volume used = " + values[0] +
+                               "\nSoft volume threshold = " + values[1] +
+                               "\nHard volume threshold = " + values[2] +
+                               "\n\nYou may be able to free some disk space by deleting unnecessary files." +
+                               "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + user[i][0] + "#")
+                msg['Subject'] = '[Warning] softBlock quota reached'
+                msg['From'] = sender + '@' + mail_domain
+                msg['To'] = user[i][0] + '@' + mail_domain
                 server = smtplib.SMTP(smtp)
                 server.sendmail(sender + '@' + mail_domain, user[i][0] + '@' + mail_domain, msg.as_string())
                 server.quit()
 
-	    i += 1
+            if (alerts_on and values[5] > 0 and user[i][1] >= values[5]):
+                msg = MIMEText("Alert on " + fs_path +
+                               ":\n\nOwner = " + user[i][0] +
+                               "\nCurrent inodes used = " + values[0] +
+                               "\nSoft inode threshold = " + values[1] +
+                               "\nHard inode threshold = " + values[2] +
+                               "\n\nYou may be able to free some disk space by deleting unnecessary files." +
+                               "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + user[i][0] + "#")
+                msg['Subject'] = '[Warning] softBlock quota reached'
+                msg['From'] = sender + '@' + mail_domain
+                msg['To'] = user[i][0] + '@' + mail_domain
+                server = smtplib.SMTP(smtp)
+                server.sendmail(sender + '@' + mail_domain, user[i][0] + '@' + mail_domain, msg.as_string())
+                server.quit()
+
+            i += 1
 
     try:
         db.close()
