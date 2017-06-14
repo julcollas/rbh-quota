@@ -153,7 +153,7 @@ def insert():
         exit(1)
 
     try:
-        db.execute("""SELECT DISTINCT(uid), SUM(size), SUM(count) FROM ACCT_STAT GROUP BY uid""")
+        db.execute("""SELECT DISTINCT(uid) FROM ACCT_STAT GROUP BY uid""")
     except MySQLdb.Error, e:
         print 'Error: Query failed to execute [Retrieve uid]\n', e[0], e[1]
         exit(1)
@@ -173,7 +173,7 @@ def insert():
                 print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
                 exit(1)
 
-            if (alerts_on and values[1] > 0 and user[i][1] >= values[1]):
+            if (alerts_on and values[1] > 0 and values[0] >= values[1]):
                 msg = MIMEText("Alert on " + fs_path +
                                ":\n\nOwner = " + user[i][0] +
                                "\nCurrent volume used = " + values[0] +
@@ -188,15 +188,15 @@ def insert():
                 server.sendmail(sender + '@' + mail_domain, user[i][0] + '@' + mail_domain, msg.as_string())
                 server.quit()
 
-            if (alerts_on and values[5] > 0 and user[i][1] >= values[5]):
+            if (alerts_on and values[5] > 0 and values[4] >= values[5]):
                 msg = MIMEText("Alert on " + fs_path +
                                ":\n\nOwner = " + user[i][0] +
-                               "\nCurrent inodes used = " + values[0] +
-                               "\nSoft inode threshold = " + values[1] +
-                               "\nHard inode threshold = " + values[2] +
+                               "\nCurrent inodes used = " + values[4] +
+                               "\nSoft inode threshold = " + values[5] +
+                               "\nHard inode threshold = " + values[6] +
                                "\n\nYou may be able to free some disk space by deleting unnecessary files." +
                                "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + user[i][0] + "#")
-                msg['Subject'] = '[Warning] softBlock quota reached'
+                msg['Subject'] = '[Warning] softInode quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = user[i][0] + '@' + mail_domain
                 server = smtplib.SMTP(smtp)

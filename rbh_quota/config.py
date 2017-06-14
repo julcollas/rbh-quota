@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import ConfigParser
+import socket
 from os.path import expanduser
 
 Config = ConfigParser.ConfigParser()
