@@ -184,13 +184,13 @@ def insert():
                       `hardInodes` bigint(20) unsigned DEFAULT '0',
                       PRIMARY KEY (`owner`) )""")
         if args.verbose:
-            print("\nexecute => CREATE TABLE `QUOTA`\n"
-                  + "(`owner` varchar(127) NOT NULL,\n"
-                  + "   `softBlocks` bigint(20) unsigned DEFAULT '0',\n"
-                  + "   `hardBlocks` bigint(20) unsigned DEFAULT '0',\n"
-                  + "   `softInodes` bigint(20) unsigned DEFAULT '0',\n"
-                  + "   `hardInodes` bigint(20) unsigned DEFAULT '0',\n"
-                  + "   PRIMARY KEY (`owner`) )")
+            print("\nexecute => CREATE TABLE `QUOTA`\n" +
+                  "(`owner` varchar(127) NOT NULL,\n" +
+                  "   `softBlocks` bigint(20) unsigned DEFAULT '0',\n" +
+                  "   `hardBlocks` bigint(20) unsigned DEFAULT '0',\n" +
+                  "   `softInodes` bigint(20) unsigned DEFAULT '0',\n" +
+                  "   `hardInodes` bigint(20) unsigned DEFAULT '0',\n" +
+                  "   PRIMARY KEY (`owner`) )")
     except MySQLdb.Error, e:
         print 'Error: Query failed to execute [Create QUOTA table]', e[0], e[1]
         exit(1)
