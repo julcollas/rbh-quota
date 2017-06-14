@@ -26,7 +26,7 @@ def insert():
         '-d', '--database', required=False, action='store', help='Database name'
     )
     parser.add_argument(
-        '-a', '--alerts', required=False, action='store', help='Trigger mail on soft quota'
+        '-a', '--alerts', required=False, action='store_true', help='Trigger mail on soft quota'
     )
     parser.add_argument(
         '-m', '--domain', required=False, action='store', help='User mail domain'
@@ -40,6 +40,9 @@ def insert():
     parser.add_argument(
         '-w', '--webHost', required=False, action='store', help='Host name for the robinhood web interface'
     )
+    parser.add_argument(
+        '--verbose', required=False, action='store_true', help='Output steps detail to stdout'
+    )
 
     args = parser.parse_args()
 
@@ -52,6 +55,9 @@ def insert():
             print 'ERROR: missing database host name from config file !'
             exit(1)
 
+    if args.verbose:
+        print("DB_HOST: " + DB_HOST)
+
     if args.user:
         DB_USER = args.user
     else:
@@ -60,6 +66,9 @@ def insert():
         else:
             print 'ERROR: missing database user name from config file !'
             exit(1)
+
+    if args.verbose:
+        print("DB_USER: " + DB_USER)
 
     if args.password:
         DB_PWD = args.password
@@ -79,6 +88,9 @@ def insert():
             print 'ERROR: missing database from config file !'
             exit(1)
 
+    if args.verbose:
+        print("DATABASE: " + DB)
+
     if args.alerts:
         alerts_on = args.alerts
     else:
@@ -86,6 +98,9 @@ def insert():
             alerts_on = config.alerts
         else:
             alerts_on = False
+
+    if args.verbose:
+        print("ALERTS: " + alerts_on)
 
     if alerts_on:
         if args.domain:
@@ -97,6 +112,9 @@ def insert():
                 print 'ERROR: alerts activated but mail domain missing from config file !'
                 exit(1)
 
+        if args.verbose:
+            print("MAIL DOMAIN: " + mail_domain)
+
         if args.server:
             smtp = args.server
         else:
@@ -106,11 +124,17 @@ def insert():
                 print 'ERROR: alerts activated but SMTP server missing from config file !'
                 exit(1)
 
+        if args.verbose:
+            print("SMTP SERVER: " + smtp)
+
         if args.sender:
             sender = args.sender
         else:
             if config.sender:
                 sender = config.sender
+
+        if args.verbose:
+            print("SENDER: " + sender)
 
         if args.webHost:
             hostname = args.webHost
@@ -118,8 +142,15 @@ def insert():
             if config.webHost:
                 hostname = config.webHost
 
+        if args.verbose:
+            print("WEB HOST NAME: " + hostname)
+
     try:
         connection = MySQLdb.connect(DB_HOST, DB_USER, DB_PWD, DB)
+        if args.verbose:
+            print '\nConnecting to ' + DB + ' as ' + DB_USER + '@' + DB_HOST
+            if DB_PWD:
+                print '(using Password: YES)'
     except MySQLdb.Error, e:
         print 'Error: Unable to connect to database\n', e[0], e[1]
         exit(1)
@@ -128,6 +159,8 @@ def insert():
 
     try:
         db.execute("""SELECT value FROM VARS WHERE varname='FS_Path'""")
+        if args.verbose:
+            print("\nexecute => SELECT value FROM VARS WHERE varname='FS_Path'")
     except MySQLdb.Error, e:
         print 'Error: Query failed to execute [Retrieving FS_PATH]\n', e[0], e[1]
         exit(1)
@@ -136,6 +169,8 @@ def insert():
 
     try:
         db.execute("""DROP TABLE IF EXISTS QUOTA""")
+        if args.verbose:
+            print("\nexecute => DROP TABLE IF EXISTS QUOTA")
     except MySQLdb.Error, e:
         print 'Error: Query failed to execute [Drop QUOTA table]\n', e[0], e[1]
         exit(1)
@@ -148,32 +183,53 @@ def insert():
                       `softInodes` bigint(20) unsigned DEFAULT '0',
                       `hardInodes` bigint(20) unsigned DEFAULT '0',
                       PRIMARY KEY (`owner`) )""")
+        if args.verbose:
+            print("\nexecute => CREATE TABLE `QUOTA`\n"
+                  + "(`owner` varchar(127) NOT NULL,\n"
+                  + "   `softBlocks` bigint(20) unsigned DEFAULT '0',\n"
+                  + "   `hardBlocks` bigint(20) unsigned DEFAULT '0',\n"
+                  + "   `softInodes` bigint(20) unsigned DEFAULT '0',\n"
+                  + "   `hardInodes` bigint(20) unsigned DEFAULT '0',\n"
+                  + "   PRIMARY KEY (`owner`) )")
     except MySQLdb.Error, e:
         print 'Error: Query failed to execute [Create QUOTA table]', e[0], e[1]
         exit(1)
 
     try:
         db.execute("""SELECT DISTINCT(uid) FROM ACCT_STAT GROUP BY uid""")
+        if args.verbose:
+            print("\nexecute => SELECT DISTINCT(uid) FROM ACCT_STAT GROUP BY uid")
     except MySQLdb.Error, e:
         print 'Error: Query failed to execute [Retrieve uid]\n', e[0], e[1]
         exit(1)
     else:
         user = db.fetchall()
+        if args.verbose:
+            print(user)
         i = 0
         while (i < len(user)):
             p = subprocess.Popen(["lfs", "quota", "-u", user[i][0], fs_path], stdout=subprocess.PIPE)
             out = p.communicate()[0].replace('\n', ' ')
+            if args.verbose:
+                print('\n' + out)
             values = re.findall('([\d]+|\-)\s(?![(]uid)', out)
+            if args.verbose:
+                print("[Owner] " + values[0] + " - [softBlocks] " + values[1] + " - [hardBlocks] " +
+                      values[2] + " - [softInodes] " + values[5] + " - [hardInodes] " + values[6])
 
             try:
                 db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] +
                            "', " + values[1] + ", " + values[2] +
                            ", " + values[5] + ", " + values[6] + ")")
+                if args.verbose:
+                    print("execute => INSERT INTO QUOTA VALUES('" + user[i][0] +
+                          "', " + values[1] + ", " + values[2] +
+                          ", " + values[5] + ", " + values[6] + ")")
             except:
                 print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
                 exit(1)
 
-            if (alerts_on and values[1] > 0 and values[0] >= values[1]):
+            if (alerts_on and int(values[1]) > 0 and values[0] >= values[1]):
                 msg = MIMEText("Alert on " + fs_path +
                                ":\n\nOwner = " + user[i][0] +
                                "\nCurrent volume used = " + values[0] +
@@ -184,11 +240,13 @@ def insert():
                 msg['Subject'] = '[Warning] softBlock quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = user[i][0] + '@' + mail_domain
+                if args.verbose:
+                    print(msg)
                 server = smtplib.SMTP(smtp)
                 server.sendmail(sender + '@' + mail_domain, user[i][0] + '@' + mail_domain, msg.as_string())
                 server.quit()
 
-            if (alerts_on and values[5] > 0 and values[4] >= values[5]):
+            if (alerts_on and int(values[5]) > 0 and values[4] >= values[5]):
                 msg = MIMEText("Alert on " + fs_path +
                                ":\n\nOwner = " + user[i][0] +
                                "\nCurrent inodes used = " + values[4] +
@@ -199,6 +257,8 @@ def insert():
                 msg['Subject'] = '[Warning] softInode quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = user[i][0] + '@' + mail_domain
+                if args.verbose:
+                    print(msg)
                 server = smtplib.SMTP(smtp)
                 server.sendmail(sender + '@' + mail_domain, user[i][0] + '@' + mail_domain, msg.as_string())
                 server.quit()
@@ -207,6 +267,8 @@ def insert():
 
     try:
         db.close()
+        if args.verbose:
+            print("\nClosing connection to MySQL database")
     except:
         print 'Error: Connection to database/carbon server failed to close'
         exit(1)
