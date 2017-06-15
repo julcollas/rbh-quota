@@ -228,7 +228,7 @@ def insert():
             try:
                 db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)" % (user[i][0], values[1], values[2], values[5], values[6]))
                 if args.verbose:
-                    print("\nexecute => INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s\n)" % (user[i][0], values[1], values[2], values[5], values[6]))
+                    print("\nexecute => INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)\n" % (user[i][0], values[1], values[2], values[5], values[6]))
             except MySQLdb.Error, e:
                 print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
                 exit(1)
