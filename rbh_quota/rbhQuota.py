@@ -137,10 +137,10 @@ def insert():
             print("SENDER: %s" % sender)
 
         if args.webHost:
-            hostname = args.webHost
+            hostname = str(args.webHost)
         else:
             if config.webHost:
-                hostname = config.webHost
+                hostname = str(config.webHost)
 
         if args.verbose:
             print("WEB HOST NAME: %s" % hostname)
@@ -221,24 +221,24 @@ def insert():
                 print('\n%s' % out)
             values = re.findall('([\d]+|\-)\*?\s(?![(]uid)', out)
             if args.verbose:
-                print("[Owner] %s - [softBlocks] %d - [hardBlocks] %d - [softInodes] %d - [hardInodes] %d" % (user[i][0], values[1], values[2], values[5], values[6]))
+                print("[Owner] %s - [softBlocks] %s - [hardBlocks] %s - [softInodes] %s - [hardInodes] %s" % (user[i][0], values[1], values[2], values[5], values[6]))
 
             try:
-                db.execute("INSERT INTO QUOTA VALUES('%s', %d, %d, %d, %d)" % (user[i][0], values[1], values[2], values[5], values[6]))
+                db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)" % (user[i][0], values[1], values[2], values[5], values[6]))
                 if args.verbose:
-                    print("execute => INSERT INTO QUOTA VALUES('%s', %d, %d, %d, %d)" % (user[i][0], values[1], values[2], values[5], values[6]))
+                    print("execute => INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)" % (user[i][0], values[1], values[2], values[5], values[6]))
             except MySQLdb.Error, e:
                 print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
                 exit(1)
 
-            if (alerts_on and int(values[1]) > 0 and values[0] >= values[1]):
+            if (alerts_on and int(values[1]) > 0 and int(values[0]) >= int(values[1])):
                 msg = MIMEText("Alert on " + fs_path +
                                ":\n\nOwner = " + user[i][0] +
-                               "\nCurrent volume used = " + str(values[0]) +
-                               "\nSoft volume threshold = " + str(values[1]) +
-                               "\nHard volume threshold = " + str(values[2]) +
+                               "\nCurrent volume used = " + values[0] +
+                               "\nSoft volume threshold = " + values[1] +
+                               "\nHard volume threshold = " + values[2] +
                                "\n\nYou may be able to free some disk space by deleting unnecessary files." +
-                               "\nSee Robinhood web interface here: " + str(hostname) + "/robinhood/?formUID=" + user[i][0] + "#")
+                               "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + user[i][0] + "#")
                 msg['Subject'] = '[Warning] softBlock quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = user[i][0] + '@' + mail_domain
@@ -248,12 +248,12 @@ def insert():
                 server.sendmail(sender + '@' + mail_domain, user[i][0] + '@' + mail_domain, msg.as_string())
                 server.quit()
 
-            if (alerts_on and int(values[5]) > 0 and values[4] >= values[5]):
+            if (alerts_on and int(values[5]) > 0 and int(values[4]) >= int(values[5])):
                 msg = MIMEText("Alert on " + fs_path +
                                ":\n\nOwner = " + user[i][0] +
-                               "\nCurrent inodes used = " + str(values[4]) +
-                               "\nSoft inode threshold = " + str(values[5]) +
-                               "\nHard inode threshold = " + str(values[6]) +
+                               "\nCurrent inodes used = " + values[4] +
+                               "\nSoft inode threshold = " + values[5] +
+                               "\nHard inode threshold = " + values[6] +
                                "\n\nYou may be able to free some disk space by deleting unnecessary files." +
                                "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + user[i][0] + "#")
                 msg['Subject'] = '[Warning] softInode quota reached'
