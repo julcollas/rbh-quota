@@ -3,7 +3,7 @@
 import argparse
 import re
 from sys import exit
-import subprocess
+from subprocess import Popen, PIPE
 from email.mime.text import MIMEText
 import smtplib
 from rbh_quota import config
@@ -56,7 +56,7 @@ def insert():
             exit(1)
 
     if args.verbose:
-        print("DB_HOST: " + DB_HOST)
+        print("DB_HOST: %s" % DB_HOST)
 
     if args.user:
         DB_USER = args.user
@@ -68,7 +68,7 @@ def insert():
             exit(1)
 
     if args.verbose:
-        print("DB_USER: " + DB_USER)
+        print("DB_USER: %s" % DB_USER)
 
     if args.password:
         DB_PWD = args.password
@@ -89,7 +89,7 @@ def insert():
             exit(1)
 
     if args.verbose:
-        print("DATABASE: " + DB)
+        print("DATABASE: %s" % DB)
 
     if args.alerts:
         alerts_on = args.alerts
@@ -100,20 +100,20 @@ def insert():
             alerts_on = False
 
     if args.verbose:
-        print("ALERTS: " + alerts_on)
+        print("ALERTS: %s" % alerts_on)
 
     if alerts_on:
         if args.domain:
-            mail_domain = args.domain
+            mail_domain = str(args.domain)
         else:
             if config.domain:
-                mail_domain = config.domain
+                mail_domain = str(config.domain)
             else:
                 print 'ERROR: alerts activated but mail domain missing from config file !'
                 exit(1)
 
         if args.verbose:
-            print("MAIL DOMAIN: " + mail_domain)
+            print("MAIL DOMAIN: %s" % mail_domain)
 
         if args.server:
             smtp = args.server
@@ -125,16 +125,16 @@ def insert():
                 exit(1)
 
         if args.verbose:
-            print("SMTP SERVER: " + smtp)
+            print("SMTP SERVER: %s" % smtp)
 
         if args.sender:
-            sender = args.sender
+            sender = str(args.sender)
         else:
             if config.sender:
-                sender = config.sender
+                sender = str(config.sender)
 
         if args.verbose:
-            print("SENDER: " + sender)
+            print("SENDER: %s" % sender)
 
         if args.webHost:
             hostname = args.webHost
@@ -143,12 +143,12 @@ def insert():
                 hostname = config.webHost
 
         if args.verbose:
-            print("WEB HOST NAME: " + hostname)
+            print("WEB HOST NAME: %s" % hostname)
 
     try:
         connection = MySQLdb.connect(DB_HOST, DB_USER, DB_PWD, DB)
         if args.verbose:
-            print '\nConnecting to ' + DB + ' as ' + DB_USER + '@' + DB_HOST
+            print '\nConnecting to %s as %s@%s' % (DB, DB_USER, DB_HOST)
             if DB_PWD:
                 print '(using Password: YES)'
     except MySQLdb.Error, e:
@@ -208,35 +208,37 @@ def insert():
             print(user)
         i = 0
         while (i < len(user)):
-            p = subprocess.Popen(["lfs", "quota", "-u", user[i][0], fs_path], stdout=subprocess.PIPE)
+
+            p = Popen(["lfs", "quota", "-u", user[i][0], fs_path], stdout=PIPE)
             out = p.communicate()[0].replace('\n', ' ')
             if args.verbose:
-                print('\n' + out)
-            values = re.findall('([\d]+|\-)\s(?![(]uid)', out)
+                print 'execute => lfs quota -u %s %s' % (user[i][0], fs_path)
+            if p.returncode != 0:
+                print 'Error: Command failed to execute [lfs quota]\n'
+                exit(1)
+
             if args.verbose:
-                print("[Owner] " + values[0] + " - [softBlocks] " + values[1] + " - [hardBlocks] " +
-                      values[2] + " - [softInodes] " + values[5] + " - [hardInodes] " + values[6])
+                print('\n%s' % out)
+            values = re.findall('([\d]+|\-)\*?\s(?![(]uid)', out)
+            if args.verbose:
+                print("[Owner] %s - [softBlocks] %d - [hardBlocks] %d - [softInodes] %d - [hardInodes] %d" % (user[i][0], values[1], values[2], values[5], values[6]))
 
             try:
-                db.execute("INSERT INTO QUOTA VALUES('" + user[i][0] +
-                           "', " + values[1] + ", " + values[2] +
-                           ", " + values[5] + ", " + values[6] + ")")
+                db.execute("INSERT INTO QUOTA VALUES('%s', %d, %d, %d, %d)" % (user[i][0], values[1], values[2], values[5], values[6]))
                 if args.verbose:
-                    print("execute => INSERT INTO QUOTA VALUES('" + user[i][0] +
-                          "', " + values[1] + ", " + values[2] +
-                          ", " + values[5] + ", " + values[6] + ")")
-            except:
+                    print("execute => INSERT INTO QUOTA VALUES('%s', %d, %d, %d, %d)" % (user[i][0], values[1], values[2], values[5], values[6]))
+            except MySQLdb.Error, e:
                 print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
                 exit(1)
 
             if (alerts_on and int(values[1]) > 0 and values[0] >= values[1]):
                 msg = MIMEText("Alert on " + fs_path +
                                ":\n\nOwner = " + user[i][0] +
-                               "\nCurrent volume used = " + values[0] +
-                               "\nSoft volume threshold = " + values[1] +
-                               "\nHard volume threshold = " + values[2] +
+                               "\nCurrent volume used = " + str(values[0]) +
+                               "\nSoft volume threshold = " + str(values[1]) +
+                               "\nHard volume threshold = " + str(values[2]) +
                                "\n\nYou may be able to free some disk space by deleting unnecessary files." +
-                               "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + user[i][0] + "#")
+                               "\nSee Robinhood web interface here: " + str(hostname) + "/robinhood/?formUID=" + user[i][0] + "#")
                 msg['Subject'] = '[Warning] softBlock quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = user[i][0] + '@' + mail_domain
@@ -249,9 +251,9 @@ def insert():
             if (alerts_on and int(values[5]) > 0 and values[4] >= values[5]):
                 msg = MIMEText("Alert on " + fs_path +
                                ":\n\nOwner = " + user[i][0] +
-                               "\nCurrent inodes used = " + values[4] +
-                               "\nSoft inode threshold = " + values[5] +
-                               "\nHard inode threshold = " + values[6] +
+                               "\nCurrent inodes used = " + str(values[4]) +
+                               "\nSoft inode threshold = " + str(values[5]) +
+                               "\nHard inode threshold = " + str(values[6]) +
                                "\n\nYou may be able to free some disk space by deleting unnecessary files." +
                                "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + user[i][0] + "#")
                 msg['Subject'] = '[Warning] softInode quota reached'
