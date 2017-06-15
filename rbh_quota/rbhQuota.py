@@ -166,6 +166,8 @@ def insert():
         exit(1)
     else:
         fs_path = (db.fetchone())[0]
+        if args.verbose:
+            print 'fs_path: %s' % fs_path
 
     try:
         db.execute("""DROP TABLE IF EXISTS QUOTA""")
@@ -212,7 +214,7 @@ def insert():
             p = Popen(["lfs", "quota", "-u", user[i][0], fs_path], stdout=PIPE)
             out = p.communicate()[0].replace('\n', ' ')
             if args.verbose:
-                print 'execute => lfs quota -u %s %s' % (user[i][0], fs_path)
+                print '=======================\nexecute => lfs quota -u %s %s' % (user[i][0], fs_path)
             if p.returncode != 0:
                 print 'Error: Command failed to execute [lfs quota]\n'
                 exit(1)
@@ -226,7 +228,7 @@ def insert():
             try:
                 db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)" % (user[i][0], values[1], values[2], values[5], values[6]))
                 if args.verbose:
-                    print("execute => INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)" % (user[i][0], values[1], values[2], values[5], values[6]))
+                    print("\nexecute => INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s\n)" % (user[i][0], values[1], values[2], values[5], values[6]))
             except MySQLdb.Error, e:
                 print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
                 exit(1)
