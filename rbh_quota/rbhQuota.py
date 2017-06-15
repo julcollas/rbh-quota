@@ -222,7 +222,7 @@ def insert():
             if args.verbose:
                 print('\n%s' % out)
 
-            values = re.findall('((?<![\S])[\d]+|\-|(?:[\d]+[dhms])+)\*?(?:\s|$)(?![(]uid)', out)
+            values = re.findall('(?<![\S])([\d]+|\-|(?:[\d]+[dhms])+)\*?(?:\s|$)(?![(]uid)', out)
 
             if args.verbose:
                 print("[Owner] %s - [softBlocks] %s - [hardBlocks] %s - [softInodes] %s - [hardInodes] %s" % (user[i][0], values[1], values[2], values[5], values[6]))
