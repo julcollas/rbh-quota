@@ -38,7 +38,7 @@ def insert():
         '-s', '--sender', required=False, action='store', help='Name used to send mail'
     )
     parser.add_argument(
-        '-c', '--copy-recipient', required=False, action='store', help='Recipient for mail copy'
+        '-c', '--copy', required=False, action='store', help='Recipient for mail copy'
     )
     parser.add_argument(
         '-w', '--webHost', required=False, action='store', help='Host name for the robinhood web interface'
