@@ -38,6 +38,9 @@ def insert():
         '-s', '--sender', required=False, action='store', help='Name used to send mail'
     )
     parser.add_argument(
+        '-c', '--copy-recipient', required=False, action='store', help='Recipient for mail copy'
+    )
+    parser.add_argument(
         '-w', '--webHost', required=False, action='store', help='Host name for the robinhood web interface'
     )
     parser.add_argument(
@@ -135,6 +138,15 @@ def insert():
 
         if args.verbose:
             print("SENDER: %s" % sender)
+
+        if args.copy:
+            CC = str(args.copy)
+        else:
+            if config.copy:
+                CC = str(config.copy)
+
+        if args.verbose:
+            print("CC: %s", % CC)
 
         if args.webHost:
             hostname = str(args.webHost)
@@ -246,6 +258,7 @@ def insert():
                 msg['Subject'] = '[Warning] softBlock quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = user[i][0] + '@' + mail_domain
+                msg['cc'] = CC + '@' + mail_domain
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
@@ -263,6 +276,7 @@ def insert():
                 msg['Subject'] = '[Warning] softInode quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = user[i][0] + '@' + mail_domain
+                msg['cc'] = CC + '@' + mail_domain
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)

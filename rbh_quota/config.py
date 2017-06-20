@@ -47,6 +47,11 @@ except:
     sender = 'rbh-quota'
 
 try:
+    copy = Config.get('rbh-quota_api', 'copy')
+except:
+    copy = 'administrator'
+
+try:
     webHost = Config.get('rbh-quota_api', 'webHost')
 except:
     webHost = socket.gethostname()
