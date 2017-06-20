@@ -140,13 +140,13 @@ def insert():
             print("SENDER: %s" % sender)
 
         if args.copy:
-            CC = str(args.copy)
+            copy = str(args.copy)
         else:
             if config.copy:
-                CC = str(config.copy)
+                copy = str(config.copy)
 
         if args.verbose:
-            print("CC: %s", % CC)
+            print("CC: %s", % copy)
 
         if args.webHost:
             hostname = str(args.webHost)
@@ -258,7 +258,7 @@ def insert():
                 msg['Subject'] = '[Warning] softBlock quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = user[i][0] + '@' + mail_domain
-                msg['cc'] = CC + '@' + mail_domain
+                msg['CC'] = copy + '@' + mail_domain
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
@@ -276,7 +276,7 @@ def insert():
                 msg['Subject'] = '[Warning] softInode quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = user[i][0] + '@' + mail_domain
-                msg['cc'] = CC + '@' + mail_domain
+                msg['CC'] = copy + '@' + mail_domain
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
