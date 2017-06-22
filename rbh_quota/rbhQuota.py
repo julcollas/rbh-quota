@@ -146,7 +146,7 @@ def insert():
                 copy = str(config.copy)
 
         if args.verbose:
-            print("CC: %s", % copy)
+            print("CC: %s" % copy)
 
         if args.webHost:
             hostname = str(args.webHost)
