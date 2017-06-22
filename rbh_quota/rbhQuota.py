@@ -313,7 +313,7 @@ def insert():
         if args.verbose:
             print('\n%s' % out)
 
-        values = re.findall('[\w]+\s+\-\-', out)
+        values = re.findall('[\w]+\s+\-\-\s+', out)
         print values
 
     try:
