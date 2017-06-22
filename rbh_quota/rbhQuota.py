@@ -311,14 +311,7 @@ def insert():
             print 'Error: Command failed to execute [repquota]\n'
             exit(1)
 
-        out = "repquota -gst /media/mount.ext3\n" +
-            "*** Rapport pour les quotas group sur le périphérique /dev/loop0\n" +
-            "Période de sursis bloc : 7days ; période de sursis inode : 7days\n" +
-            "                           Limites bloc               Limites fichier\n" +
-            "   Groupe        utilisé souple stricte sursis utilisé souple stricte sursis\n" +
-            "   ----------------------------------------------------------------------\n" +
-            "   root      --    5663       0       0              4     0     0\n" +
-            "   quota-dir --       2       0   20480              4     0     0"
+        out = "repquota -gst /media/mount.ext3\n*** Rapport pour les quotas group sur le périphérique /dev/loop0\nPériode de sursis bloc : 7days ; période de sursis inode : 7days\n                           Limites bloc               Limites fichier\n   Groupe        utilisé souple stricte sursis utilisé souple stricte sursis\n   ----------------------------------------------------------------------\n   root      --    5663       0       0              4     0     0\n   quota-dir --       2       0   20480              4     0     0"
 
         if args.verbose:
             print('\n%s' % out)
