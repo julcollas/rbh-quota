@@ -308,12 +308,12 @@ def insert():
         if args.verbose:
             print '=======================\nexecute => repquota -u %s' % fs_path
 
-        out = "repquota -gst /media/mount.ext3\n*** Rapport pour les quotas group sur le périphérique /dev/loop0\nPériode de sursis bloc : 7days ; période de sursis inode : 7days\n                           Limites bloc               Limites fichier\n   Groupe        utilisé souple stricte sursis utilisé souple stricte sursis\n   ----------------------------------------------------------------------\n   root      --    5663       0       0              4     0     0\n   quota-dir --       2       0   20480              4     0     0"
+        out = "repquota -gst /media/mount.ext3\n*** Rapport pour les quotas group sur le priphrique /dev/loop0\nPriode de sursis bloc : 7days ; priode de sursis inode : 7days\n                           Limites bloc               Limites fichier\n   Groupe        utilis souple stricte sursis utilis souple stricte sursis\n   ----------------------------------------------------------------------\n   root      --    5663       0       0              4     0     0\n   quota-dir --       2       0   20480              4     0     0"
 
         if args.verbose:
             print('\n%s' % out)
 
-        values = re.findall('(^([\w]+)\s+\-\-(\s+\d+\s+)+(?:\n|$))+', out)
+        values = re.findall('(([\w]+)\s+\-\-(\s+\d+\s+)+(?:\n|$))+', out)
         print values
 
     try:
