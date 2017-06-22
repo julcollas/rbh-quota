@@ -27,6 +27,11 @@ except:
     db = ''
 
 try:
+    fsType = Config.get('rbh-quota_api', 'fsType')
+except:
+    fsType = ''
+
+try:
     alerts = Config.get('rbh-quota_api', 'alerts')
 except:
     alerts = False
