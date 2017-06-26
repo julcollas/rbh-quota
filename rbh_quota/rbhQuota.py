@@ -251,7 +251,7 @@ def insert():
                 if args.verbose:
                     print('\n%s' % out)
 
-                values = re.findall('(?<![\S])([\d]+|\-|(?:[\d]+[dhms])+)\*?(?:\s|$)(?![(]uid)', out)
+                values = re.findall('(?<!\S)(\d+|\-|(?:\d+[dhms])+)\*?(?:\s|$)(?![(]uid)', out)
 
                 if args.verbose:
                     print("[Owner] %s - [softBlocks] %s - [hardBlocks] %s - [softInodes] %s - [hardInodes] %s" % (user[i][0], values[1], values[2], values[5], values[6]))
@@ -309,14 +309,14 @@ def insert():
             print '=======================\nexecute => repquota -u %s' % fs_path
 
         if p.returncode != 0:
-            print 'Error: Command failed to execute [lfs quota]\n'
+            print 'Error: Command failed to execute [repquota]\n'
             exit(1)
 
         if args.verbose:
             print('\n%s' % out)
 
-        values = re.findall('([-a-zA-Z0-9_]+)[\s]+\-\-[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d]+)[\s]+((?:[\d]+[dhms])+)?' +
-                            '[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d]+)(?:[\s]+((?:[\d]+[dhms])+))?(?:$|[\s]+)', out)
+        values = re.findall('([-a-zA-Z0-9_]+)\s+\-\-\s+(\d+)\s+(\d+)\s+(\d+)\s+((?:\d+[dhms])+)?' +
+                            '\s+(\d+)\s+(\d+)\s+(\d+)(?:\s+((?:\d+[dhms])+))?(?:$|\s+)', out)
 
         if args.verbose:
             print values
@@ -365,6 +365,55 @@ def insert():
                     print(msg)
                 server = smtplib.SMTP(smtp)
                 server.sendmail(sender + '@' + mail_domain, values[i][0] + '@' + mail_domain, msg.as_string())
+                server.quit()
+
+            i += 1
+
+    if FS_TYPE == "xfs":
+        #p = Popen(["xfs_quota", "-x", "-c", "'report'", fs_path], stdout=PIPE)
+        #out = p.communicate()[0]
+        if args.verbose:
+            print '=======================\nexecute => xfs_quota -x -c \'report\' %s' % fs_path
+
+ #       if p.returncode != 0:
+#            print 'Error: Command failed to execute [xfs_quota]\n'
+  #          exit(1)
+        out = "User quota on /myxfs (/dev/vg0/lv0)\n                        Blocks              \nUser ID      Used   Soft   Hard Warn/Grace   \n---------- --------------------------------- \nroot            0      0      0  00 [------]\nguest           200000100   200000000   250000000  00 [------]"
+
+        if args.verbose:
+            print('\n%s' % out)
+
+        values = re.findall('([-a-zA-Z0-9_]+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+\[[-0-9]+\]', out)
+
+        if args.verbose:
+            print values
+
+        i = 0
+        while (i < len(values)):
+            try:
+                db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, 0, 0)\n" % (values[i][0], values[i][2], values[i][3]))
+                if args.verbose:
+                    print("\nexecute => INSERT INTO QUOTA VALUES('%s', %s, %s, 0, 0)\n" % (values[i][0], values[i][2], values[i][3]))
+            except MySQLdb.Error, e:
+                    print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
+                    exit(1)
+
+            if (alerts_on and int(values[i][2]) > 0 and int(values[i][1]) >= int(values[i][2])):
+                msg = MIMEText("Alert on " + fs_path +
+                               ":\n\nOwner = " + values[i][0] +
+                               "\nCurrent volume used = " + values[i][1] +
+                               "\nSoft volume threshold = " + values[i][2] +
+                               "\nHard volume threshold = " + values[i][3] +
+                               "\n\nYou may be able to free some disk space by deleting unnecessary files." +
+                               "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + values[i][0] + "#")
+                msg['Subject'] = '[Warning] softBlock quota reached'
+                msg['From'] = sender + '@' + mail_domain
+                msg['To'] = values[i][0] + '@' + mail_domain
+                msg['CC'] = copy + '@' + mail_domain
+                if args.verbose:
+                    print(msg)
+                server = smtplib.SMTP(smtp)
+                server.sendmail(sender + '@' + mail_domain, 'sami.boucenna@' + mail_domain, msg.as_string())
                 server.quit()
 
             i += 1
