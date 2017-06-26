@@ -370,15 +370,14 @@ def insert():
             i += 1
 
     if FS_TYPE == "xfs":
-        #p = Popen(["xfs_quota", "-x", "-c", "'report'", fs_path], stdout=PIPE)
-        #out = p.communicate()[0]
+        p = Popen(["xfs_quota", "-x", "-c", "'report'", fs_path], stdout=PIPE)
+        out = p.communicate()[0]
         if args.verbose:
             print '=======================\nexecute => xfs_quota -x -c \'report\' %s' % fs_path
 
- #       if p.returncode != 0:
-#            print 'Error: Command failed to execute [xfs_quota]\n'
-  #          exit(1)
-        out = "User quota on /myxfs (/dev/vg0/lv0)\n                        Blocks              \nUser ID      Used   Soft   Hard Warn/Grace   \n---------- --------------------------------- \nroot            0      0      0  00 [------]\nguest           200000100   200000000   250000000  00 [------]"
+        if p.returncode != 0:
+            print 'Error: Command failed to execute [xfs_quota]\n'
+            exit(1)
 
         if args.verbose:
             print('\n%s' % out)
@@ -413,7 +412,7 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, 'sami.boucenna@' + mail_domain, msg.as_string())
+                server.sendmail(sender + '@' + mail_domain, values[i][0] + '@' + mail_domain, msg.as_string())
                 server.quit()
 
             i += 1
