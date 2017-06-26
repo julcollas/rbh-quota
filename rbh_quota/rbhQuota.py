@@ -303,19 +303,71 @@ def insert():
                 i += 1
 
     if FS_TYPE == "ext4":
-        # p = Popen(["repquota", "-u", fs_path], stdout=PIPE)
-        # out = p.communicate()[0]
+        p = Popen(["repquota", "-u", fs_path], stdout=PIPE)
+        out = p.communicate()[0]
         if args.verbose:
             print '=======================\nexecute => repquota -u %s' % fs_path
 
-        out = "repquota -gst /media/mount.ext3\n*** Rapport pour les quotas group sur le priphrique /dev/loop0\nPriode de sursis bloc : 7days ; priode de sursis inode : 7days\n                           Limites bloc               Limites fichier\n   Groupe        utilis souple stricte sursis utilis souple stricte sursis\n   ----------------------------------------------------------------------\n   root      --    5663       0       0              4     0     0\n   quota-dir --       2       0   20480              4     0     0"
+        if p.returncode != 0:
+            print 'Error: Command failed to execute [lfs quota]\n'
+            exit(1)
 
         if args.verbose:
             print('\n%s' % out)
 
         values = re.findall('([-a-zA-Z0-9_]+)[\s]+\-\-[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d]+)[\s]+((?:[\d]+[dhms])+)?' +
                             '[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d]+)(?:[\s]+((?:[\d]+[dhms])+))?(?:$|[\s]+)', out)
-        print values
+
+        if args.verbose:
+            print values
+
+        i = 0
+        while (i < len(values)):
+            try:
+                db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)\n" % (values[i][0], values[i][2], values[i][3], values[i][6], values[i][7]))
+                if args.verbose:
+                    print("\nexecute => INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)\n" % (values[i][0], values[i][2], values[i][3], values[i][6], values[i][7]))
+            except MySQLdb.Error, e:
+                    print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
+                    exit(1)
+
+            if (alerts_on and int(values[i][2]) > 0 and int(values[i][1]) >= int(values[i][2])):
+                msg = MIMEText("Alert on " + fs_path +
+                               ":\n\nOwner = " + values[i][0] +
+                               "\nCurrent volume used = " + values[i][1] +
+                               "\nSoft volume threshold = " + values[i][2] +
+                               "\nHard volume threshold = " + values[i][3] +
+                               "\n\nYou may be able to free some disk space by deleting unnecessary files." +
+                               "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + values[i][0] + "#")
+                msg['Subject'] = '[Warning] softBlock quota reached'
+                msg['From'] = sender + '@' + mail_domain
+                msg['To'] = values[i][0] + '@' + mail_domain
+                msg['CC'] = copy + '@' + mail_domain
+                if args.verbose:
+                    print(msg)
+                server = smtplib.SMTP(smtp)
+                server.sendmail(sender + '@' + mail_domain, values[i][0] + '@' + mail_domain, msg.as_string())
+                server.quit()
+
+            if (alerts_on and int(values[i][6]) > 0 and int(values[i][5]) >= int(values[i][6])):
+                msg = MIMEText("Alert on " + fs_path +
+                               ":\n\nOwner = " + values[i][0] +
+                               "\nCurrent inodes used = " + values[i][5] +
+                               "\nSoft inode threshold = " + values[i][6] +
+                               "\nHard inode threshold = " + values[i][7] +
+                               "\n\nYou may be able to free some disk space by deleting unnecessary files." +
+                               "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + values[i][0] + "#")
+                msg['Subject'] = '[Warning] softInode quota reached'
+                msg['From'] = sender + '@' + mail_domain
+                msg['To'] = values[i][0] + '@' + mail_domain
+                msg['CC'] = copy + '@' + mail_domain
+                if args.verbose:
+                    print(msg)
+                server = smtplib.SMTP(smtp)
+                server.sendmail(sender + '@' + mail_domain, values[i][0] + '@' + mail_domain, msg.as_string())
+                server.quit()
+
+            i += 1
 
     try:
         db.close()
