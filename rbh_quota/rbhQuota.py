@@ -313,7 +313,8 @@ def insert():
         if args.verbose:
             print('\n%s' % out)
 
-        values = re.findall('[\w]+\s+\-\-\s+', out)
+        values = re.findall('([-a-zA-Z0-9_]+)[\s]+\-\-[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d]+)[\s]+((?:[\d]+[dhms])+)?' +
+                            '[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d]+)(?:[\s]+((?:[\d]+[dhms])+))?(?:$|[\s]+)', out)
         print values
 
     try:
