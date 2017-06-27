@@ -279,7 +279,7 @@ def insert():
                     if args.verbose:
                         print(msg)
                     server = smtplib.SMTP(smtp)
-                    server.sendmail(sender + '@' + mail_domain, msg['To'] + msg['CC'], msg.as_string())
+                    server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
                     server.quit()
 
                 if (alerts_on and int(values[5]) > 0 and int(values[4]) >= int(values[5])):
@@ -297,7 +297,7 @@ def insert():
                     if args.verbose:
                         print(msg)
                     server = smtplib.SMTP(smtp)
-                    server.sendmail(sender + '@' + mail_domain, msg['To'] + msg['CC'], msg.as_string())
+                    server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
                     server.quit()
 
                 i += 1
@@ -346,7 +346,7 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, msg['To'] + msg['CC'], msg.as_string())
+                server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
                 server.quit()
 
             if (alerts_on and int(values[i][6]) > 0 and int(values[i][5]) >= int(values[i][6])):
@@ -364,7 +364,7 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, msg['To'] + msg['CC'], msg.as_string())
+                server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
                 server.quit()
 
             i += 1
@@ -412,7 +412,7 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, msg['To'] + msg['CC'], msg.as_string())
+                server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
                 server.quit()
 
             if (alerts_on and int(values[i][6]) > 0 and int(values[i][5]) >= int(values[i][6])):
@@ -430,7 +430,7 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, msg['To'] + msg['CC'], msg.as_string())
+                server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
                 server.quit()
 
             i += 1
