@@ -279,7 +279,7 @@ def insert():
                     if args.verbose:
                         print(msg)
                     server = smtplib.SMTP(smtp)
-                    server.sendmail(sender + '@' + mail_domain, user[i][0] + '@' + mail_domain, msg.as_string())
+                    server.sendmail(sender + '@' + mail_domain, msg['To'] + msg['CC'], msg.as_string())
                     server.quit()
 
                 if (alerts_on and int(values[5]) > 0 and int(values[4]) >= int(values[5])):
@@ -297,7 +297,7 @@ def insert():
                     if args.verbose:
                         print(msg)
                     server = smtplib.SMTP(smtp)
-                    server.sendmail(sender + '@' + mail_domain, user[i][0] + '@' + mail_domain, msg.as_string())
+                    server.sendmail(sender + '@' + mail_domain, msg['To'] + msg['CC'], msg.as_string())
                     server.quit()
 
                 i += 1
@@ -315,8 +315,8 @@ def insert():
         if args.verbose:
             print('\n%s' % out)
 
-        values = re.findall('([-a-zA-Z0-9_]+)\s+\-\-\s+(\d+)\s+(\d+)\s+(\d+)\s+((?:\d+[dhms])+)?' +
-                            '\s+(\d+)\s+(\d+)\s+(\d+)(?:\s+((?:\d+[dhms])+))?(?:$|\s+)', out)
+        values = re.findall('([-a-zA-Z0-9_]+)\s+(?:\-|\+){2}\s+(\d+)\s+(\d+)\s+(\d+)\s+([0-9a-z]+)?' +
+                            '\s+(\d+)\s+(\d+)\s+(\d+)(?:\s+([0-9a-z]+))?(?:$|\s+)', out)
 
         if args.verbose:
             print values
@@ -346,7 +346,7 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, values[i][0] + '@' + mail_domain, msg.as_string())
+                server.sendmail(sender + '@' + mail_domain, msg['To'] + msg['CC'], msg.as_string())
                 server.quit()
 
             if (alerts_on and int(values[i][6]) > 0 and int(values[i][5]) >= int(values[i][6])):
@@ -364,7 +364,7 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, values[i][0] + '@' + mail_domain, msg.as_string())
+                server.sendmail(sender + '@' + mail_domain, msg['To'] + msg['CC'], msg.as_string())
                 server.quit()
 
             i += 1
@@ -390,9 +390,9 @@ def insert():
         i = 0
         while (i < len(values)):
             try:
-                db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, 0, 0)\n" % (values[i][0], values[i][2], values[i][3]))
+                db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)\n" % (values[i][0], values[i][2], values[i][3], values[i][6], values[i][7]))
                 if args.verbose:
-                    print("\nexecute => INSERT INTO QUOTA VALUES('%s', %s, %s, 0, 0)\n" % (values[i][0], values[i][2], values[i][3]))
+                    print("\nexecute => INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)\n" % (values[i][0], values[i][2], values[i][3], values[i][6], values[i][7]))
             except MySQLdb.Error, e:
                     print 'Error: Query failed to execute [Insert into QUOTA table]\n', e[0], e[1]
                     exit(1)
@@ -412,7 +412,7 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, values[i][0] + '@' + mail_domain, msg.as_string())
+                server.sendmail(sender + '@' + mail_domain, msg['To'] + msg['CC'], msg.as_string())
                 server.quit()
 
             if (alerts_on and int(values[i][6]) > 0 and int(values[i][5]) >= int(values[i][6])):
@@ -430,7 +430,7 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, values[i][0] + '@' + mail_domain, msg.as_string())
+                server.sendmail(sender + '@' + mail_domain, msg['To'] + msg['CC'], msg.as_string())
                 server.quit()
 
             i += 1
