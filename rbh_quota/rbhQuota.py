@@ -302,6 +302,10 @@ def insert():
 
                 i += 1
 
+#########################################
+#         For ext4 filesystem           #
+#########################################
+
     if FS_TYPE == "ext4":
         p = Popen(["repquota", "-u", fs_path], stdout=PIPE)
         out = p.communicate()[0]
@@ -369,6 +373,10 @@ def insert():
 
             i += 1
 
+#########################################
+#          For xfs filesystem           #
+#########################################
+
     if FS_TYPE == "xfs":
         p = Popen(["xfs_quota" , "-x", "-c", "report -u -ib", fs_path], stdout=PIPE)
         out = p.communicate()[0]
@@ -382,7 +390,7 @@ def insert():
         if args.verbose:
             print('\n%s' % out)
 
-        values = re.findall('([-a-zA-Z0-9_]+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+\[[-0-9a-z\s]+\]\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+\[[-0-9a-z]+\]', out)
+        values = re.findall('([-a-zA-Z0-9_]+)\s+(\d+)\s+(\d+)\s+(\d+)\s+\d+\s+\[(?:\-{8}|([0-9a-z\s]+)|\-\-none\-\-)]\s+(\d+)\s+(\d+)\s+(\d+)\s+\d+\s+\[(?:\-{8}|([0-9a-z\s]+)|\-\-none\-\-)\]', out)
 
         if args.verbose:
             print values
