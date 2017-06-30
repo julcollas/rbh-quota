@@ -11,6 +11,8 @@ rbh-quota provides a new table 'QUOTA' to the database and stores
 the quotas foreach users in it.
 This table can be used to visualize the quotas through
 robinhood's web interface from this fork : https://github.com/LiquidSame/robinhood
+if 'alerts_on' is set to True then the script will warn via mail any user
+reaching their soft quota (inode or block)
 
 II - Compiling
 ==============
@@ -87,6 +89,7 @@ db_host = ...
 db_user = robinhood
 db_pwd = ...
 db = robinhood_...
+fsType = (ext4 | lustre | xfs)
 alerts = True/False
 domain = ...
 smtp_server = ...
