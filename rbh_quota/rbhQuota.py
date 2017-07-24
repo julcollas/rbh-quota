@@ -49,6 +49,9 @@ def insert():
     parser.add_argument(
         '--verbose', required=False, action='store_true', help='Output steps detail to stdout'
     )
+    parser.add_argument(
+        '--dry-run', required=False, action='store_true', help='Executes command without sending mail or updating QUOTA table'
+    )
 
     args = parser.parse_args()
 
@@ -172,9 +175,7 @@ def insert():
     try:
         connection = MySQLdb.connect(DB_HOST, DB_USER, DB_PWD, DB)
         if args.verbose:
-            print '\nConnecting to %s as %s@%s' % (DB, DB_USER, DB_HOST)
-            if DB_PWD:
-                print '(using Password: YES)'
+            print '\nConnecting to %s as %s@%s (using password:%s)' % (DB, DB_USER, DB_HOST, 'YES' if DB_PWD else 'NO')
     except MySQLdb.Error, e:
         print 'Error: Unable to connect to database\n', e[0], e[1]
         exit(1)
@@ -194,7 +195,8 @@ def insert():
             print 'fs_path: %s' % fs_path
 
     try:
-        db.execute("""DROP TABLE IF EXISTS QUOTA""")
+        if not args.dry_run:
+            db.execute("""DROP TABLE IF EXISTS QUOTA""")
         if args.verbose:
             print("\nexecute => DROP TABLE IF EXISTS QUOTA")
     except MySQLdb.Error, e:
@@ -202,13 +204,14 @@ def insert():
         exit(1)
 
     try:
-        db.execute("""CREATE TABLE `QUOTA`
-                      (`owner` varchar(127) NOT NULL,
-                      `softBlocks` bigint(20) unsigned DEFAULT '0',
-                      `hardBlocks` bigint(20) unsigned DEFAULT '0',
-                      `softInodes` bigint(20) unsigned DEFAULT '0',
-                      `hardInodes` bigint(20) unsigned DEFAULT '0',
-                      PRIMARY KEY (`owner`) )""")
+        if not args.dry_run:
+            db.execute("""CREATE TABLE `QUOTA`
+                          (`owner` varchar(127) NOT NULL,
+                          `softBlocks` bigint(20) unsigned DEFAULT '0',
+                          `hardBlocks` bigint(20) unsigned DEFAULT '0',
+                          `softInodes` bigint(20) unsigned DEFAULT '0',
+                          `hardInodes` bigint(20) unsigned DEFAULT '0',
+                          PRIMARY KEY (`owner`) )""")
         if args.verbose:
             print("\nexecute => CREATE TABLE `QUOTA`\n" +
                   "(`owner` varchar(127) NOT NULL,\n" +
@@ -257,7 +260,8 @@ def insert():
                     print("[Owner] %s - [softBlocks] %s - [hardBlocks] %s - [softInodes] %s - [hardInodes] %s" % (user[i][0], values[1], values[2], values[5], values[6]))
 
                 try:
-                    db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)" % (user[i][0], values[1], values[2], values[5], values[6]))
+                    if not args.dry_run:
+                        db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)" % (user[i][0], values[1], values[2], values[5], values[6]))
                     if args.verbose:
                         print("\nexecute => INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)\n" % (user[i][0], values[1], values[2], values[5], values[6]))
                 except MySQLdb.Error, e:
@@ -279,7 +283,8 @@ def insert():
                     if args.verbose:
                         print(msg)
                     server = smtplib.SMTP(smtp)
-                    server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
+                    if not args.dry_run:
+                        server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
                     server.quit()
 
                 if (alerts_on and int(values[5]) > 0 and int(values[4]) >= int(values[5])):
@@ -297,7 +302,8 @@ def insert():
                     if args.verbose:
                         print(msg)
                     server = smtplib.SMTP(smtp)
-                    server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
+                    if not args.dry_run:
+                        server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
                     server.quit()
 
                 i += 1
@@ -328,7 +334,8 @@ def insert():
         i = 0
         while (i < len(values)):
             try:
-                db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)\n" % (values[i][0], values[i][2], values[i][3], values[i][6], values[i][7]))
+                if not args.dry_run:
+                    db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)\n" % (values[i][0], values[i][2], values[i][3], values[i][6], values[i][7]))
                 if args.verbose:
                     print("\nexecute => INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)\n" % (values[i][0], values[i][2], values[i][3], values[i][6], values[i][7]))
             except MySQLdb.Error, e:
@@ -350,7 +357,8 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
+                if not args.dry_run:
+                    server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
                 server.quit()
 
             if (alerts_on and int(values[i][6]) > 0 and int(values[i][5]) >= int(values[i][6])):
@@ -368,7 +376,8 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
+                if not args.dry_run:
+                    server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
                 server.quit()
 
             i += 1
@@ -378,7 +387,7 @@ def insert():
 #########################################
 
     if FS_TYPE == "xfs":
-        p = Popen(["xfs_quota" , "-x", "-c", "report -u -ib", fs_path], stdout=PIPE)
+        p = Popen(["xfs_quota", "-x", "-c", "report -u -ib", fs_path], stdout=PIPE)
         out = p.communicate()[0]
         if args.verbose:
             print '=======================\nexecute => xfs_quota -x -c \'report -ib -u\' %s' % fs_path
@@ -398,7 +407,8 @@ def insert():
         i = 0
         while (i < len(values)):
             try:
-                db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)\n" % (values[i][0], values[i][2], values[i][3], values[i][6], values[i][7]))
+                if not args.dry_run:
+                    db.execute("INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)\n" % (values[i][0], values[i][2], values[i][3], values[i][6], values[i][7]))
                 if args.verbose:
                     print("\nexecute => INSERT INTO QUOTA VALUES('%s', %s, %s, %s, %s)\n" % (values[i][0], values[i][2], values[i][3], values[i][6], values[i][7]))
             except MySQLdb.Error, e:
@@ -420,7 +430,8 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
+                if not args.dry_run:
+                    server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
                 server.quit()
 
             if (alerts_on and int(values[i][6]) > 0 and int(values[i][5]) >= int(values[i][6])):
@@ -438,7 +449,8 @@ def insert():
                 if args.verbose:
                     print(msg)
                 server = smtplib.SMTP(smtp)
-                server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
+                if not args.dry_run:
+                    server.sendmail(sender + '@' + mail_domain, [msg['To']] + [msg['CC']], msg.as_string())
                 server.quit()
 
             i += 1
