@@ -243,7 +243,7 @@ def insert():
             i = 0
             while (i < len(user)):
 
-                p = Popen(["lfs", "quota", "-u", user[i][0], fs_path], stdout=PIPE)
+                p = Popen(["lfs", "quota", "-q", "-u", user[i][0], fs_path], stdout=PIPE)
                 out = p.communicate()[0].replace('\n', ' ')
                 if args.verbose:
                     print '=======================\nexecute => lfs quota -u %s %s' % (user[i][0], fs_path)
@@ -254,7 +254,7 @@ def insert():
                 if args.verbose:
                     print('\n%s' % out)
 
-                values = re.findall('(?<!\S)(\d+|\-|(?:\d+[dhms])+)\*?(?:\s|$)(?![(]uid)', out)
+                values = [x.replace('*', '') for x in out.split()[1:]]
 
                 if args.verbose:
                     print("[Owner] %s - [softBlocks] %s - [hardBlocks] %s - [softInodes] %s - [hardInodes] %s" % (user[i][0], values[1], values[2], values[5], values[6]))
