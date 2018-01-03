@@ -275,7 +275,7 @@ def insert():
                                    "\nSoft volume threshold = " + values[1] +
                                    "\nHard volume threshold = " + values[2] +
                                    "\n\nYou may be able to free some disk space by deleting unnecessary files." +
-                                   "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + user[i][0] + "#")
+                                   "\nSee Robinhood web interface here: " + hostname + "/?formUID=" + user[i][0] + "#")
                     msg['Subject'] = '[Warning] softBlock quota reached'
                     msg['From'] = sender + '@' + mail_domain
                     msg['To'] = user[i][0] + '@' + mail_domain
@@ -294,7 +294,7 @@ def insert():
                                    "\nSoft inode threshold = " + values[5] +
                                    "\nHard inode threshold = " + values[6] +
                                    "\n\nYou may be able to free some disk space by deleting unnecessary files." +
-                                   "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + user[i][0] + "#")
+                                   "\nSee Robinhood web interface here: " + hostname + "/?formUID=" + user[i][0] + "#")
                     msg['Subject'] = '[Warning] softInode quota reached'
                     msg['From'] = sender + '@' + mail_domain
                     msg['To'] = user[i][0] + '@' + mail_domain
@@ -349,7 +349,7 @@ def insert():
                                "\nSoft volume threshold = " + values[i][2] +
                                "\nHard volume threshold = " + values[i][3] +
                                "\n\nYou may be able to free some disk space by deleting unnecessary files." +
-                               "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + values[i][0] + "#")
+                               "\nSee Robinhood web interface here: " + hostname + "/?formUID=" + values[i][0] + "#")
                 msg['Subject'] = '[Warning] softBlock quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = values[i][0] + '@' + mail_domain
@@ -368,7 +368,7 @@ def insert():
                                "\nSoft inode threshold = " + values[i][6] +
                                "\nHard inode threshold = " + values[i][7] +
                                "\n\nYou may be able to free some disk space by deleting unnecessary files." +
-                               "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + values[i][0] + "#")
+                               "\nSee Robinhood web interface here: " + hostname + "/?formUID=" + values[i][0] + "#")
                 msg['Subject'] = '[Warning] softInode quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = values[i][0] + '@' + mail_domain
@@ -422,7 +422,7 @@ def insert():
                                "\nSoft volume threshold = " + values[i][2] +
                                "\nHard volume threshold = " + values[i][3] +
                                "\n\nYou may be able to free some disk space by deleting unnecessary files." +
-                               "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + values[i][0] + "#")
+                               "\nSee Robinhood web interface here: " + hostname + "/?formUID=" + values[i][0] + "#")
                 msg['Subject'] = '[Warning] softBlock quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = values[i][0] + '@' + mail_domain
@@ -441,7 +441,7 @@ def insert():
                                "\nSoft inode threshold = " + values[i][6] +
                                "\nHard inode threshold = " + values[i][7] +
                                "\n\nYou may be able to free some disk space by deleting unnecessary files." +
-                               "\nSee Robinhood web interface here: " + hostname + "/robinhood/?formUID=" + values[i][0] + "#")
+                               "\nSee Robinhood web interface here: " + hostname + "/?formUID=" + values[i][0] + "#")
                 msg['Subject'] = '[Warning] softInode quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = values[i][0] + '@' + mail_domain
