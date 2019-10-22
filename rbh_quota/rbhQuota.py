@@ -47,6 +47,9 @@ def insert():
         '-t', '--fsType', required=False, action='store', help='Filesystem type'
     )
     parser.add_argument(
+        '--tag',  required=False, action='store',  help='Email Tag'
+    )
+    parser.add_argument(
         '--verbose', required=False, action='store_true', help='Output steps detail to stdout'
     )
     parser.add_argument(
@@ -172,6 +175,17 @@ def insert():
         if args.verbose:
             print("WEB HOST NAME: %s" % hostname)
 
+        if args.tag:
+            tag = str(args.tag)
+        else:
+            if config.tag:
+                tag = str(config.tag)
+            else:
+                tag = ''
+
+        if args.verbose:
+            print("TAG: %s" % tag)
+
     try:
         connection = MySQLdb.connect(DB_HOST, DB_USER, DB_PWD, DB)
         if args.verbose:
@@ -276,7 +290,7 @@ def insert():
                                    "\nHard volume threshold = " + values[2] +
                                    "\n\nYou may be able to free some disk space by deleting unnecessary files." +
                                    "\nSee Robinhood web interface here: " + hostname + "/?formUID=" + user[i][0] + "#")
-                    msg['Subject'] = '[Warning] softBlock quota reached'
+                    msg['Subject'] = tag + '[Warning] softBlock quota reached'
                     msg['From'] = sender + '@' + mail_domain
                     msg['To'] = user[i][0] + '@' + mail_domain
                     msg['CC'] = copy + '@' + mail_domain
@@ -442,7 +456,7 @@ def insert():
                                "\nHard inode threshold = " + values[i][7] +
                                "\n\nYou may be able to free some disk space by deleting unnecessary files." +
                                "\nSee Robinhood web interface here: " + hostname + "/?formUID=" + values[i][0] + "#")
-                msg['Subject'] = '[Warning] softInode quota reached'
+                msg['Subject'] = tag + '[Warning] softInode quota reached'
                 msg['From'] = sender + '@' + mail_domain
                 msg['To'] = values[i][0] + '@' + mail_domain
                 msg['CC'] = copy + '@' + mail_domain
