@@ -60,3 +60,8 @@ try:
     webHost = Config.get('rbh-quota_api', 'webHost')
 except:
     webHost = socket.gethostname()
+
+try:
+    tag = Config.get('rbh-quota_api', 'tag')
+except:
+    tag = ''
